@@ -1,0 +1,143 @@
+#loading packages
+library(tidyverse)
+library(readr)
+library(janitor)     
+library(dplyr)       
+library(tidyr)       
+library(labelled)     
+library(gtsummary) 
+
+
+### reading in dataset ###
+covid <- read_csv("data/biosproject.csv")
+covid_clean <- covid %>% 
+  
+  # clean variable names
+  clean_names() %>%
+  
+  #labeling variables
+  mutate(
+    
+    sex = case_when(
+      sex == 1 ~ "Male",
+      sex == 2 ~ "Female",
+      sex %in% c(7, 8, 9) ~ "Unknown", # Combine unknown values
+      TRUE ~ as.character(sex) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    
+    hispyn = case_when(
+      hispyn == 1 ~ "Non-Hispanic",
+      hispyn == 2 ~ "Hispanic",
+      hispyn %in% c(7, 8, 9) ~ "Unknown",  # Combine unknown values
+      TRUE ~ as.character(hispyn)  # Keep other unexpected values as-is
+    ) %>% factor(),
+    
+    
+    racenew = case_when(
+      racenew == 100 ~ "White",
+      racenew == 200 ~ "Black/African American",
+      racenew == 300 ~ "AI/AN",
+      racenew == 400 ~ "Asian",
+      racenew %in% c(500, 510, 520, 530, 540, 541, 542) ~ "Other or Multiple Race", 
+      racenew %in% c(997, 998, 999) ~ "Unknown", # Combine unknown values
+      TRUE ~ as.character(racenew) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    
+    educ = case_when(
+      educ %in% c(100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 112, 114, 115, 116) ~ "Less than high school/GED",
+      educ %in% c(200, 201, 202) ~ "High School/GED",
+      educ %in% c(300, 301, 302, 303, 400, 500, 501, 502, 503, 504, 505) ~ "More than high school/GED",
+      educ %in% c(000, 996, 997, 998, 999) ~ "Unknown", # Combine unknown values
+      TRUE ~ as.character(educ) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    
+    health = case_when(
+      health == 1 ~ "Excellent",
+      health == 2 ~ "Very Good",
+      health == 3 ~ "Good",
+      health == 4 ~ "Fair",
+      health == 5 ~ "Poor",
+      health %in% c(7, 8, 9) ~ "Unknown",  #  Combine unknown values
+      TRUE ~ as.character(health)  # Keep other unexpected values as-is
+    ) %>% factor(),
+    
+    
+    worfreq = case_when(
+      worfreq == 1 ~ "Daily",
+      worfreq == 2 ~ "Weekly",
+      worfreq == 3 ~ "Monthly",
+      worfreq == 4 ~ "A few times a year",
+      worfreq == 5 ~ "Never",
+      worfreq %in% c(0, 7, 8, 9) ~ "Unknown", # Combine unknown and not-in-unit values
+      TRUE ~ as.character(worfreq) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    
+    depfreq = case_when(
+      depfreq == 1 ~ "Daily",
+      depfreq == 2 ~ "Weekly",
+      depfreq == 3 ~ "Monthly",
+      depfreq == 4 ~ "A few times a year",
+      depfreq == 5 ~ "Never",
+      depfreq %in% c(0, 7, 8, 9) ~ "Unknown", # Combine unknown and not-in-unit values
+      TRUE ~ as.character(depfreq) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    cvdlongnow = case_when(
+      cvdlongnow == 1 ~ "No",                   
+      cvdlongnow == 2 ~ "Yes",                 
+      cvdlongnow %in% c(0, 7, 8, 9) ~ "Unknown",  # Assign NA for unknown or invalid values
+      TRUE ~ as.character(cvdlongnow)          
+    ) %>% factor(),
+    
+    cvdlong = case_when(
+      cvdlong == 1 ~ "No",                   
+      cvdlong == 2 ~ "Yes",                 
+      cvdlong %in% c(0, 7, 8, 9) ~ "Unknown",  # Assign NA for unknown or invalid values
+      TRUE ~ as.character(cvdlong)           
+    ) %>% factor(),
+    
+    #new variable to capture both long covid variables
+    cvdlongstatus = case_when(
+      cvdlong == "Yes" | cvdlongnow == "Yes" ~ "Has or had long covid",
+      cvdlong == "No" ~ "No long covid",
+      TRUE ~ "Unknown"
+    ) %>% factor(),
+    
+    cvdlongact = case_when(
+      cvdlongact == 1 ~ "Not at all",
+      cvdlongact == 2 ~ "Mild", # a little
+      cvdlongact == 3 ~ "Severe", # a lot
+      cvdlongact == 4 ~ "Moderate", # somewhere between a little and a lot
+      cvdlongact %in% c(0, 7, 8, 9) ~ "Unknown", # Combine unknown and not-in-unit values
+      TRUE ~ as.character(cvdlongact) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+    cvdsht = case_when(
+      cvdsht == 1 ~ "No",
+      cvdsht == 2 ~ "Yes",
+      cvdsht %in% c(0, 7, 8, 9) ~ "Unknown",
+      TRUE ~ as.character(cvdsht)
+    ) %>% factor(),
+    
+    cvdever = case_when(
+      cvdever == 1 ~ "No",
+      cvdever == 2 ~ "Yes",
+      cvdever %in% c(0, 7, 8, 9) ~ "Unknown", # Combine unknown and not-in-unit values
+      TRUE ~ as.character(cvdever) # Keep unexpected values as-is
+    ) %>% factor(),
+    
+  ) %>%
+  
+  # exclude people with unknown long COVID status
+  filter(cvdlongstatus != "Unknown") %>%
+  
+  # drop columns i don't want
+  select(-c(year, serial, strata, astatflg, cstatflg, hhx))
+
+
+# Write out cleaned data
+write.csv(covid_clean, "/Users/mayaglass/desktop/bios/final_project/data/covid_clean.csv")
