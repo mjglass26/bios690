@@ -1,0 +1,28 @@
+---
+title: "Descriptive Analysis Report of Long COVID NHIS Data"
+output: pdf_document
+date: "2025-04-14"
+---
+
+# Table 1
+![](figures/table1.png)
+
+# Visualizations
+
+## Figure 1
+![](figures/age_distribution.png)
+
+## Figure 2
+![](figures/worry.png)
+
+## Figure 3
+![](figures/depression.png)
+
+## Figure 4
+![](figures/heatmap.png)
+
+## Figure 5
+![](figures/impact.png)
+
+## Figure 6
+![](figures/vaccine.png)
