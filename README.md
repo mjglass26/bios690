@@ -4,6 +4,7 @@ This project explores COVID-related survey data from the 2023 National Health In
 #Folders
 - `Scripts/`: contains all R scripts for cleaning and creating tables and visualizations
 - `Data/`: contains clean and raw files
-- `Report/`: final report document
+- `final_report.rmd`: R markdown file of the report
+- `final_report.pdf`: PDF version of the final report
 - `Makefile`: to create the report
 - `Dockerfile`: to reproduce the project
