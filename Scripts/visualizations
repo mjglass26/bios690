@@ -1,0 +1,161 @@
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+
+#read in data
+covid_clean <- read_csv("data/covid_clean.csv")
+
+###creating visualizations###
+
+#create a histogram to show the age distribution of people with long covid
+longcovhist <- covid_clean %>% filter(cvdlongstatus == "Has or had long covid")
+
+age_histogram <- ggplot(longcovhist, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "lightblue", color = "white", alpha = 0.8, boundary = 0) +
+  labs(title = "Age Distribution for People Who Had or Have Long COVID",
+       x = "Age",
+       y = "Count") +
+  scale_x_continuous(limits = c(0, 90)) +
+  theme_minimal() +
+  theme(
+  plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+  axis.title = element_text(size = 12),
+  axis.text = element_text(size = 10),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank()
+  )
+
+ggsave("figures/age_distribution.png", plot = age_histogram, width = 5, height = 6)
+
+age_histogram
+
+
+#bar chart for worry by long covid status
+worplot <- ggplot(covid_clean, aes(x = cvdlongstatus, fill = worfreq)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "Greens", direction = -1)+
+  labs(title = "Worry Frequency by Long COVID Status",
+       x = "Long COVID Status",
+       y = "Proportion",
+       fill = "Worry Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    axis.title = element_text(size = 14),  
+    axis.text = element_text(size = 12), 
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 11), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+worplot
+ggsave("figures/worry.png", plot = worplot, width = 8, height = 6)
+
+
+#bar chart for depression by long covid status
+depplot <- ggplot(covid_clean, aes(x = cvdlongstatus, fill = depfreq)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "Blues", direction = -1)+
+  labs(title = "Depression Frequency by Long COVID Status",
+       x = "Long COVID Status",
+       y = "Proportion",
+       fill = "Depression Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    axis.title = element_text(size = 14),  
+    axis.text = element_text(size = 12), 
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 11), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+depplot
+ggsave("figures/depression.png", plot = depplot, width = 8, height = 6)
+
+
+#comorbidity of worry and depression by long covid status
+heat_data <- covid_clean %>%
+  count(cvdlongstatus, worfreq, depfreq) %>%
+  group_by(cvdlongstatus) %>%
+  mutate(prop = n / sum(n))
+
+heatmap <- ggplot(heat_data %>% filter(worfreq != "Unknown", depfreq != "Unknown"), aes(x = worfreq, y = depfreq, fill = prop)) +
+  geom_tile(color = "white") +
+  facet_wrap(~ cvdlongstatus) +
+  scale_fill_viridis_c(option = "inferno") +
+  labs(title = "Comorbidity of Worry and Depression Frequency by Long COVID Status",
+       x = "Worry Frequency",
+       y = "Depression Frequency",
+       fill = "Proportion") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    axis.title = element_text(size = 14),  
+    axis.text = element_text(size = 12), 
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 11), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+heatmap
+ggsave("figures/heatmap.png", plot = heatmap, width = 8, height = 6)
+
+
+
+#bar graph for covid impact and depression
+impactplot <- ggplot(covid_clean %>% filter(cvdlongact != "Unknown"), aes(x = cvdlongact, fill = depfreq)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "Purples", direction = -1)+
+  labs(title = "Depression Frequency by Long COVID's Impact on Activities",
+       x = "Long COVID's Impact on Activities",
+       y = "Proportion",
+       fill = "Depression Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    axis.title = element_text(size = 14),  
+    axis.text = element_text(size = 12), 
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 11), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+impactplot
+
+ggsave("figures/impact.png", plot = impactplot, width = 8, height = 6)
+
+covid_clean$cvdsht
+
+#bar chart for worry by covid vaccination status
+vaxplot <- ggplot(covid_clean %>% filter(cvdsht != "Unknown"), aes(x = cvdsht, fill = worfreq)) +
+  geom_bar(position = "fill") + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_brewer(palette = "Oranges", direction = -1)+
+  labs(title = "Worry Frequency by COVID Vaccination Status",
+       x = "Received COVID Vaccine",
+       y = "Proportion",
+       fill = "Worry Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5), 
+    axis.title = element_text(size = 14),  
+    axis.text = element_text(size = 12), 
+    legend.title = element_text(size = 13), 
+    legend.text = element_text(size = 11), 
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+vaxplot
+ggsave("figures/vaccine.png", plot = vaxplot, width = 8, height = 6)
+
