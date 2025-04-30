@@ -1,0 +1,53 @@
+library(tidyverse)
+library(gtsummary)   
+library(ggplot2)      
+library(tableone)
+library(gt)
+library(webshot2)
+
+#read in data
+covid_clean <- read_csv("data/covid_clean.csv")
+
+
+### creating a table 1 ###
+covid_clean <- covid_clean %>%
+  mutate(
+    health = factor(health, levels = c("Excellent", "Very Good", "Good", "Fair", "Poor", "Unknown")),
+    worfreq = factor(worfreq, levels = c("Daily", "Weekly", "Monthly", "A few times a year", "Never", "Unknown")),
+    racenew = factor(racenew, levels = c("AI/AN", "Asian", "Black/African American", "Other or Multiple Race", "White", "Unknown")),
+    educ = factor(educ, levels = c("Less than high school/GED", "High School/GED", "More than high school/GED", "Unknown")),
+    depfreq = factor(depfreq, levels = c("Daily", "Weekly", "Monthly", "A few times a year", "Never", "Unknown")),
+    cvdlongact = factor(cvdlongact, levels = c("Not at all", "Mild", "Severe", "Unknown")),
+    cvdsht = factor(cvdsht, levels = c("Yes", "No", "Unknown"))
+  )
+
+
+table1 <- covid_clean %>%
+  select(age, sex, racenew, hispyn, educ, health, worfreq, depfreq, 
+         cvdlongstatus, cvdlongact, cvdsht) %>%
+  tbl_summary(
+    by = cvdlongstatus,
+    label = list(
+    age ~ "Age",
+    sex ~ "Sex",
+    racenew ~ "Race",
+    hispyn ~ "Ethnicity",
+    educ ~ "Education",
+    health ~ "Health Status",
+    worfreq ~ "Worry Frequency",
+    depfreq ~ "Depression Frequency",
+    cvdlongact ~ "Impact of Long COVID on Activities",
+    cvdsht ~ "Received COVID Vaccine"
+  ),
+  percent = "row",
+  missing = "ifany"
+  ) %>%
+  add_p(test = everything() ~ "chisq.test") %>%
+  as_gt() %>%
+  tab_header(
+    title = "Table 1. Characteristics of NHIS Participants by Long COVID Status in 2023"
+  )
+
+table1
+
+gt::gtsave(table1, "figures/table1.png")
